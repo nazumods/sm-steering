@@ -1,7 +1,8 @@
 import { Alert, Button } from "@lepid-labs/ui-react";
 import { useEffect, useState } from "react";
 import { type Result, type Solution, wheelLimits } from "../geometry/ackermann";
-import { blocks, deg, short } from "../ui/format";
+import { Deg } from "../ui/Deg";
+import { blocks, short, wholeDeg } from "../ui/format";
 import { RoleBadge } from "./AxleTable";
 
 export function Results({ result }: { result: Result }) {
@@ -82,10 +83,19 @@ function Solved({ solution }: { solution: Solution }) {
                   <RoleBadge axle={a} mode={a.mode} isReference={ref === a.index} />
                 </td>
                 <td className={`num${ref === a.index ? " lead" : ""}`}>
-                  {a.direction === "none" ? "—" : deg(a.inner)}
+                  {a.direction === "none" ? "—" : <Deg value={a.inner} />}
                 </td>
-                <td className="num">{a.direction === "none" ? "—" : deg(a.outer)}</td>
-                <td className="num">{a.direction === "none" ? "—" : deg(a.inner - a.outer)}</td>
+                <td className="num">{a.direction === "none" ? "—" : <Deg value={a.outer} />}</td>
+                <td className="num">
+                  {a.direction === "none" ? (
+                    "—"
+                  ) : (
+                    <span className="deg" title={`exact ${(a.inner - a.outer).toFixed(2)}°`}>
+                      {Math.round(a.inner) - Math.round(a.outer)}
+                      {"°"}
+                    </span>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -113,8 +123,12 @@ function Solved({ solution }: { solution: Solution }) {
                 <td>
                   Axle {w.axle + 1} {w.side}
                 </td>
-                <td className="num">{deg(w.leftTurn)}</td>
-                <td className="num">{deg(w.rightTurn)}</td>
+                <td className="num">
+                  <Deg value={w.leftTurn} />
+                </td>
+                <td className="num">
+                  <Deg value={w.rightTurn} />
+                </td>
                 <td>{w.direction === "reversed" ? "Reversed" : "With front"}</td>
               </tr>
             ))}
@@ -171,7 +185,7 @@ export function formatForClipboard(solution: Solution): string {
   for (const w of wheelLimits(solution)) {
     const name = `Axle ${w.axle + 1} ${w.side}`.padEnd(15);
     const dir = w.direction === "reversed" ? "reversed" : "with front";
-    lines.push(`${name}${deg(w.leftTurn).padStart(9)}   ${deg(w.rightTurn).padStart(9)}   ${dir}`);
+    lines.push(`${name}${wholeDeg(w.leftTurn).padStart(9)}   ${wholeDeg(w.rightTurn).padStart(9)}   ${dir}`);
   }
   lines.push("");
   lines.push(`${window.location.href}`);

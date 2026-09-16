@@ -2,7 +2,8 @@ import { Field, Select } from "@lepid-labs/ui-react";
 import { autoTurnCenter, axlePositions, type Solution, type VehicleSpec } from "../geometry/ackermann";
 import { MAX_AXLES, MIN_AXLES, withAxleCount } from "../state/spec";
 import { ButtonGroup } from "../ui/ButtonGroup";
-import { deg, short } from "../ui/format";
+import { Deg } from "../ui/Deg";
+import { short } from "../ui/format";
 import { NumberInput } from "../ui/NumberInput";
 
 interface Props {
@@ -160,7 +161,10 @@ export function VehicleForm({ spec, onChange, solution }: Props) {
             {solution?.referenceAxle !== null && solution?.referenceAxle !== undefined ? (
               <>
                 Applies to <strong>axle {solution.referenceAxle + 1}</strong>; its inner wheel turns{" "}
-                <strong>{deg(solution.axles[solution.referenceAxle].inner)}</strong> and the rest turn less.
+                <strong>
+                  <Deg value={solution.axles[solution.referenceAxle].inner} />
+                </strong>{" "}
+                and the rest turn less.
               </>
             ) : (
               "The axle whose inner wheel gets the limit above."

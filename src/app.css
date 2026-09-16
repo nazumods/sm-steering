@@ -186,6 +186,12 @@
   color: var(--ld-accent);
   font-weight: var(--ld-font-weight-bold);
 }
+/* whole-degree value with the exact angle in a tooltip */
+.deg {
+  text-decoration: underline dotted var(--ld-faint);
+  text-underline-offset: 3px;
+  cursor: help;
+}
 .actions {
   display: flex;
   flex-wrap: wrap;

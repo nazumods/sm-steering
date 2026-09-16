@@ -84,7 +84,7 @@ export function App() {
             <SectionTitle
               n="04"
               title="Bearing limits"
-              sub="Enter these on each steering bearing in the seat."
+              sub="Whole degrees, as the seat accepts them. Hover a value for the exact angle."
             />
             <Results result={result} />
           </Card>
