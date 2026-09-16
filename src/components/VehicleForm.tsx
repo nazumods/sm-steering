@@ -1,6 +1,7 @@
 import { Field, Select } from "@lepid-labs/ui-react";
 import { autoTurnCenter, axlePositions, type Solution, type VehicleSpec } from "../geometry/ackermann";
-import { MAX_AXLES, MIN_AXLES, matchingPreset, PRESETS, withAxleCount } from "../state/spec";
+import { MAX_AXLES, MIN_AXLES, withAxleCount } from "../state/spec";
+import { ButtonGroup } from "../ui/ButtonGroup";
 import { deg, short } from "../ui/format";
 import { NumberInput } from "../ui/NumberInput";
 
@@ -13,7 +14,6 @@ interface Props {
 const AXLE_COUNTS = Array.from({ length: MAX_AXLES - MIN_AXLES + 1 }, (_, i) => MIN_AXLES + i);
 
 export function VehicleForm({ spec, onChange, solution }: Props) {
-  const preset = matchingPreset(spec);
   const positions = axlePositions(spec.axles);
   const autoCenter = autoTurnCenter(spec.axles, positions);
   const fixedCount = spec.axles.filter((a) => a.mode === "fixed").length;
@@ -28,40 +28,15 @@ export function VehicleForm({ spec, onChange, solution }: Props) {
 
   return (
     <div>
-      <div className="grid2">
-        <Field label="Preset" htmlFor="preset">
-          <Select
-            id="preset"
-            value={preset?.id ?? "custom"}
-            onChange={(e) => {
-              const p = PRESETS.find((x) => x.id === e.target.value);
-              if (p) onChange(p.spec);
-            }}
-          >
-            {PRESETS.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label}
-              </option>
-            ))}
-            <option value="custom" disabled>
-              Custom
-            </option>
-          </Select>
-        </Field>
-        <Field label="Axles" htmlFor="axles">
-          <Select
-            id="axles"
-            value={spec.axles.length}
-            onChange={(e) => onChange(withAxleCount(spec, Number(e.target.value)))}
-          >
-            {AXLE_COUNTS.map((n) => (
-              <option key={n} value={n}>
-                {n} axles / {n * 2} wheels
-              </option>
-            ))}
-          </Select>
-        </Field>
-      </div>
+      <Field label="Axles">
+        <ButtonGroup
+          label="Number of axles"
+          options={AXLE_COUNTS.map((n) => ({ value: n, label: n }))}
+          value={spec.axles.length}
+          onChange={(n) => onChange(withAxleCount(spec, n))}
+        />
+        <p className="hint">{spec.axles.length * 2} wheels.</p>
+      </Field>
 
       <div className="grid2">
         <Field label="Turn center" htmlFor="center-mode">

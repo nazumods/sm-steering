@@ -1,4 +1,4 @@
-import { Badge, Card } from "@lepid-labs/ui-react";
+import { Card } from "@lepid-labs/ui-react";
 import { type ReactNode, useMemo } from "react";
 import { AxleTable } from "./components/AxleTable";
 import { Diagram } from "./components/Diagram";
@@ -6,7 +6,9 @@ import { Guide } from "./components/Guide";
 import { Results } from "./components/Results";
 import { VehicleForm } from "./components/VehicleForm";
 import { solve } from "./geometry/ackermann";
+import { matchingPreset, PRESETS } from "./state/spec";
 import { useSpec } from "./state/useSpec";
+import { ButtonGroup } from "./ui/ButtonGroup";
 
 function SectionTitle({ n, title, sub }: { n: string; title: string; sub?: ReactNode }) {
   return (
@@ -36,10 +38,17 @@ export function App() {
             follows.
           </p>
         </div>
-        <div className="badges">
-          <Badge variant="primary">Level 5 seat</Badge>
-          <Badge>4 to 10 wheels</Badge>
-          <Badge>Link-shareable</Badge>
+        <div className="presets">
+          <span className="ld-label">Presets</span>
+          <ButtonGroup
+            label="Presets"
+            options={PRESETS.map((p) => ({ value: p.id, label: p.label }))}
+            value={matchingPreset(spec)?.id ?? null}
+            onChange={(id) => {
+              const p = PRESETS.find((x) => x.id === id);
+              if (p) setSpec(p.spec);
+            }}
+          />
         </div>
       </header>
 

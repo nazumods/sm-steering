@@ -31,6 +31,13 @@ export const PRESETS: Preset[] = [
     spec: { axles: [steer(0, 6), fixed(5, 6), steer(5, 6)], turnCenter: { kind: "auto" }, limit: angle(27) },
   },
   {
+    id: "six-split",
+    label: "6 wheels: split, all steer",
+    // Front axle alone, rear pair close together. The turn center sits halfway
+    // along the vehicle, so the middle axle is behind it and steers reversed.
+    spec: { axles: [steer(0, 6), steer(7, 6), steer(3, 6)], turnCenter: { kind: "auto" }, limit: angle(27) },
+  },
+  {
     id: "eight-front",
     label: "8 wheels: front pair steer",
     spec: {
