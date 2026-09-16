@@ -34,106 +34,89 @@ function Solved({ solution }: { solution: Solution }) {
         </Alert>
       ))}
 
-      <div className="stats">
-        <div className="stat">
-          <span className="stat-label">Turn radius</span>
-          <span className="stat-value accent">{short(round(solution.radius))}</span>
-          <span className="stat-sub">blocks, centerline to turn center</span>
+      <div className="results-grid">
+        <div>
+          <h3>Per axle</h3>
+          <div className="table-scroll">
+            <table className="ld-table">
+              <thead>
+                <tr>
+                  <th scope="col">Axle</th>
+                  <th scope="col">Role</th>
+                  <th scope="col" className="num">
+                    Inner
+                  </th>
+                  <th scope="col" className="num">
+                    Outer
+                  </th>
+                  <th scope="col" className="num">
+                    Difference
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {solution.axles.map((a) => (
+                  <tr key={a.index}>
+                    <td>Axle {a.index + 1}</td>
+                    <td>
+                      <RoleBadge axle={a} mode={a.mode} isReference={ref === a.index} />
+                    </td>
+                    <td className={`num${ref === a.index ? " lead" : ""}`}>
+                      {a.direction === "none" ? "—" : <Deg value={a.inner} />}
+                    </td>
+                    <td className="num">{a.direction === "none" ? "—" : <Deg value={a.outer} />}</td>
+                    <td className="num">
+                      {a.direction === "none" ? (
+                        "—"
+                      ) : (
+                        <span className="deg" title={`exact ${(a.inner - a.outer).toFixed(2)}°`}>
+                          {Math.round(a.inner) - Math.round(a.outer)}
+                          {"°"}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div className="stat">
-          <span className="stat-label">Turn center</span>
-          <span className="stat-value">{short(round(solution.turnCenter))}</span>
-          <span className="stat-sub">blocks behind the front axle</span>
-        </div>
-        <div className="stat">
-          <span className="stat-label">Tightest wheel path</span>
-          <span className="stat-value">{short(round(solution.minRadius))}</span>
-          <span className="stat-sub">blocks</span>
-        </div>
-        <div className="stat">
-          <span className="stat-label">Widest wheel path</span>
-          <span className="stat-value">{short(round(solution.maxRadius))}</span>
-          <span className="stat-sub">blocks, clearance you need</span>
-        </div>
-      </div>
 
-      <h3>Per axle</h3>
-      <div className="table-scroll">
-        <table className="ld-table">
-          <thead>
-            <tr>
-              <th scope="col">Axle</th>
-              <th scope="col">Role</th>
-              <th scope="col" className="num">
-                Inner
-              </th>
-              <th scope="col" className="num">
-                Outer
-              </th>
-              <th scope="col" className="num">
-                Difference
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {solution.axles.map((a) => (
-              <tr key={a.index}>
-                <td>Axle {a.index + 1}</td>
-                <td>
-                  <RoleBadge axle={a} mode={a.mode} isReference={ref === a.index} />
-                </td>
-                <td className={`num${ref === a.index ? " lead" : ""}`}>
-                  {a.direction === "none" ? "—" : <Deg value={a.inner} />}
-                </td>
-                <td className="num">{a.direction === "none" ? "—" : <Deg value={a.outer} />}</td>
-                <td className="num">
-                  {a.direction === "none" ? (
-                    "—"
-                  ) : (
-                    <span className="deg" title={`exact ${(a.inner - a.outer).toFixed(2)}°`}>
-                      {Math.round(a.inner) - Math.round(a.outer)}
-                      {"°"}
-                    </span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <h3>Level 5 seat bearing limits</h3>
-      <div className="table-scroll">
-        <table className="ld-table">
-          <thead>
-            <tr>
-              <th scope="col">Wheel</th>
-              <th scope="col" className="num">
-                Left turn
-              </th>
-              <th scope="col" className="num">
-                Right turn
-              </th>
-              <th scope="col">Direction</th>
-            </tr>
-          </thead>
-          <tbody>
-            {wheels.map((w) => (
-              <tr key={`${w.axle}-${w.side}`}>
-                <td>
-                  Axle {w.axle + 1} {w.side}
-                </td>
-                <td className="num">
-                  <Deg value={w.leftTurn} />
-                </td>
-                <td className="num">
-                  <Deg value={w.rightTurn} />
-                </td>
-                <td>{w.direction === "reversed" ? "Reversed" : "With front"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div>
+          <h3>Level 5 seat bearing limits</h3>
+          <div className="table-scroll">
+            <table className="ld-table">
+              <thead>
+                <tr>
+                  <th scope="col">Wheel</th>
+                  <th scope="col" className="num">
+                    Left turn
+                  </th>
+                  <th scope="col" className="num">
+                    Right turn
+                  </th>
+                  <th scope="col">Direction</th>
+                </tr>
+              </thead>
+              <tbody>
+                {wheels.map((w) => (
+                  <tr key={`${w.axle}-${w.side}`}>
+                    <td>
+                      Axle {w.axle + 1} {w.side}
+                    </td>
+                    <td className="num">
+                      <Deg value={w.leftTurn} />
+                    </td>
+                    <td className="num">
+                      <Deg value={w.rightTurn} />
+                    </td>
+                    <td>{w.direction === "reversed" ? "Reversed" : "With front"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <div className="actions">

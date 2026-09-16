@@ -4,6 +4,7 @@ import { AxleTable } from "./components/AxleTable";
 import { Diagram } from "./components/Diagram";
 import { Guide } from "./components/Guide";
 import { Results } from "./components/Results";
+import { GeometryStats } from "./components/Stats";
 import { VehicleForm } from "./components/VehicleForm";
 import { solve } from "./geometry/ackermann";
 import { matchingPreset, PRESETS } from "./state/spec";
@@ -52,43 +53,38 @@ export function App() {
         </div>
       </header>
 
-      <div className="layout">
-        <div className="stack">
-          <Card>
-            <SectionTitle
-              n="01"
-              title="Vehicle"
-              sub="Count whole blocks; the wheel size fills in the rest."
-            />
-            <VehicleForm spec={spec} onChange={setSpec} solution={solution} />
-          </Card>
-          <Card>
-            <SectionTitle
-              n="02"
-              title="Axles"
-              sub="Front axle first. Gap is blocks to the axle above it; between is blocks between the two bearings."
-            />
-            <AxleTable spec={spec} onChange={setSpec} solution={solution} />
-          </Card>
-        </div>
-        <div className="stack">
-          <Card>
-            <SectionTitle
-              n="03"
-              title="Geometry"
-              sub="Top-down view of a left turn. Every wheel rolls around the same turn center."
-            />
+      <div className="stack">
+        <Card>
+          <SectionTitle n="01" title="Vehicle" sub="Count whole blocks; the wheel size fills in the rest." />
+          <VehicleForm spec={spec} onChange={setSpec} solution={solution} />
+        </Card>
+        <Card>
+          <SectionTitle
+            n="02"
+            title="Axles"
+            sub="Front axle first. Gap is blocks to the axle above it; between is blocks between the two bearings."
+          />
+          <AxleTable spec={spec} onChange={setSpec} solution={solution} />
+        </Card>
+        <Card>
+          <SectionTitle
+            n="03"
+            title="Geometry"
+            sub="Top-down view of a left turn. Every wheel rolls around the same turn center."
+          />
+          <div className="geo">
             <Diagram spec={spec} solution={solution} />
-          </Card>
-          <Card>
-            <SectionTitle
-              n="04"
-              title="Bearing limits"
-              sub="Whole degrees, as the seat accepts them. Hover a value for the exact angle."
-            />
-            <Results result={result} />
-          </Card>
-        </div>
+            <GeometryStats solution={solution} />
+          </div>
+        </Card>
+        <Card>
+          <SectionTitle
+            n="04"
+            title="Bearing limits"
+            sub="Whole degrees, as the seat accepts them. Hover a value for the exact angle."
+          />
+          <Results result={result} />
+        </Card>
       </div>
 
       <Guide />

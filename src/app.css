@@ -44,20 +44,52 @@
   gap: var(--ld-space-1);
 }
 
-.layout {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-  gap: var(--ld-space-4);
-  align-items: start;
-}
-@media (max-width: 64rem) {
-  .layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
+/* Cards always stack; each card reflows its own contents at wider widths. */
 .stack {
   display: grid;
   gap: var(--ld-space-4);
+}
+
+/* vehicle form: fields flow into as many columns as fit */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 0 var(--ld-space-4);
+  align-items: start;
+}
+.form-grid .ld-field {
+  min-width: 0;
+}
+
+/* geometry: diagram beside the turn numbers */
+.geo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, 19rem);
+  gap: var(--ld-space-4);
+  align-items: start;
+}
+.geo .stats {
+  grid-template-columns: 1fr;
+  margin: 0;
+}
+@media (max-width: 48rem) {
+  .geo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .geo .stats {
+    grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  }
+}
+
+/* results: the two tables side by side when there is room */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
+  gap: 0 var(--ld-space-4);
+  align-items: start;
+}
+.results-grid > div {
+  min-width: 0;
 }
 
 .section-title {
@@ -169,7 +201,7 @@
   font-size: 11px;
 }
 .results h3 {
-  margin: var(--ld-space-3) 0 var(--ld-space-2);
+  margin: var(--ld-space-2) 0 var(--ld-space-2);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: var(--ld-tracking-wide);

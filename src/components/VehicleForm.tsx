@@ -28,7 +28,7 @@ export function VehicleForm({ spec, onChange, solution }: Props) {
         : `Average of the ${fixedCount} fixed axles.`;
 
   return (
-    <div>
+    <div className="form-grid">
       <Field label="Axles">
         <ButtonGroup
           label="Number of axles"
@@ -39,100 +39,96 @@ export function VehicleForm({ spec, onChange, solution }: Props) {
         <p className="hint">{spec.axles.length * 2} wheels.</p>
       </Field>
 
-      <div className="grid2">
-        <Field label="Turn center" htmlFor="center-mode">
-          <Select
-            id="center-mode"
-            value={spec.turnCenter.kind}
-            onChange={(e) =>
+      <Field label="Turn center" htmlFor="center-mode">
+        <Select
+          id="center-mode"
+          value={spec.turnCenter.kind}
+          onChange={(e) =>
+            onChange({
+              ...spec,
+              turnCenter:
+                e.target.value === "custom" ? { kind: "custom", position: autoCenter } : { kind: "auto" },
+            })
+          }
+        >
+          <option value="auto">Automatic</option>
+          <option value="custom">Custom position</option>
+        </Select>
+        <p className="hint">
+          {spec.turnCenter.kind === "auto" ? (
+            <>
+              {autoCenterHint} <strong>{short(autoCenter)} blocks</strong> behind the front axle.
+            </>
+          ) : (
+            "The line the vehicle pivots around. Axles ahead of it steer normally, axles behind it steer reversed."
+          )}
+        </p>
+      </Field>
+
+      {spec.turnCenter.kind === "custom" && (
+        <Field label="Blocks behind front axle" htmlFor="center-pos">
+          <NumberInput
+            id="center-pos"
+            step={0.5}
+            value={spec.turnCenter.position}
+            onChange={(position) => onChange({ ...spec, turnCenter: { kind: "custom", position } })}
+          />
+        </Field>
+      )}
+
+      <Field label="Limit by" htmlFor="limit-mode">
+        <Select
+          id="limit-mode"
+          value={spec.limit.kind}
+          onChange={(e) => {
+            if (e.target.value === spec.limit.kind) return;
+            if (e.target.value === "radius") {
               onChange({
                 ...spec,
-                turnCenter:
-                  e.target.value === "custom" ? { kind: "custom", position: autoCenter } : { kind: "auto" },
-              })
+                limit: { kind: "radius", blocks: solution ? round(solution.radius) : 12 },
+              });
+            } else {
+              const ref = solution?.referenceAxle ?? null;
+              const inner = ref !== null ? solution?.axles[ref]?.inner : undefined;
+              onChange({
+                ...spec,
+                limit: { kind: "angle", degrees: inner ? round(inner) : 27, axle: "auto" },
+              });
             }
-          >
-            <option value="auto">Automatic</option>
-            <option value="custom">Custom position</option>
-          </Select>
-          <p className="hint">
-            {spec.turnCenter.kind === "auto" ? (
-              <>
-                {autoCenterHint} <strong>{short(autoCenter)} blocks</strong> behind the front axle.
-              </>
-            ) : (
-              "The line the vehicle pivots around. Axles ahead of it steer normally, axles behind it steer reversed."
-            )}
-          </p>
-        </Field>
-        {spec.turnCenter.kind === "custom" ? (
-          <Field label="Blocks behind front axle" htmlFor="center-pos">
-            <NumberInput
-              id="center-pos"
-              step={0.5}
-              value={spec.turnCenter.position}
-              onChange={(position) => onChange({ ...spec, turnCenter: { kind: "custom", position } })}
-            />
-          </Field>
-        ) : (
-          <div />
-        )}
-      </div>
+          }}
+        >
+          <option value="angle">Max inner wheel angle</option>
+          <option value="radius">Turn radius</option>
+        </Select>
+        <p className="hint">
+          {spec.limit.kind === "angle"
+            ? "The limit for the wheel closest to the turn center on the reference axle. Everything else is derived."
+            : "Distance from the turn center to the vehicle centerline, in blocks."}
+        </p>
+      </Field>
 
-      <div className="grid2">
-        <Field label="Limit by" htmlFor="limit-mode">
-          <Select
-            id="limit-mode"
-            value={spec.limit.kind}
-            onChange={(e) => {
-              if (e.target.value === spec.limit.kind) return;
-              if (e.target.value === "radius") {
-                onChange({
-                  ...spec,
-                  limit: { kind: "radius", blocks: solution ? round(solution.radius) : 12 },
-                });
-              } else {
-                const ref = solution?.referenceAxle ?? null;
-                const inner = ref !== null ? solution?.axles[ref]?.inner : undefined;
-                onChange({
-                  ...spec,
-                  limit: { kind: "angle", degrees: inner ? round(inner) : 27, axle: "auto" },
-                });
-              }
-            }}
-          >
-            <option value="angle">Max inner wheel angle</option>
-            <option value="radius">Turn radius</option>
-          </Select>
-          <p className="hint">
-            {spec.limit.kind === "angle"
-              ? "The limit for the wheel closest to the turn center on the reference axle. Everything else is derived."
-              : "Distance from the turn center to the vehicle centerline, in blocks."}
-          </p>
+      {spec.limit.kind === "angle" ? (
+        <Field label="Inner angle (degrees)" htmlFor="limit-angle">
+          <NumberInput
+            id="limit-angle"
+            min={1}
+            max={89}
+            value={spec.limit.degrees}
+            onChange={(degrees) =>
+              onChange({ ...spec, limit: { kind: "angle", degrees, axle: axleOf(spec) } })
+            }
+          />
         </Field>
-        {spec.limit.kind === "angle" ? (
-          <Field label="Inner angle (degrees)" htmlFor="limit-angle">
-            <NumberInput
-              id="limit-angle"
-              min={1}
-              max={89}
-              value={spec.limit.degrees}
-              onChange={(degrees) =>
-                onChange({ ...spec, limit: { kind: "angle", degrees, axle: axleOf(spec) } })
-              }
-            />
-          </Field>
-        ) : (
-          <Field label="Radius (blocks)" htmlFor="limit-radius">
-            <NumberInput
-              id="limit-radius"
-              min={1}
-              value={spec.limit.blocks}
-              onChange={(blocks) => onChange({ ...spec, limit: { kind: "radius", blocks } })}
-            />
-          </Field>
-        )}
-      </div>
+      ) : (
+        <Field label="Radius (blocks)" htmlFor="limit-radius">
+          <NumberInput
+            id="limit-radius"
+            min={1}
+            value={spec.limit.blocks}
+            onChange={(blocks) => onChange({ ...spec, limit: { kind: "radius", blocks } })}
+          />
+        </Field>
+      )}
 
       {spec.limit.kind === "angle" && (
         <Field label="Reference axle" htmlFor="ref-axle">
@@ -150,7 +146,7 @@ export function VehicleForm({ spec, onChange, solution }: Props) {
               })
             }
           >
-            <option value="auto">Automatic (farthest steered axle from the turn center)</option>
+            <option value="auto">Automatic (farthest from the turn center)</option>
             {steered.map(({ i }) => (
               <option key={i} value={i}>
                 Axle {i + 1}
