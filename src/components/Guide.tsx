@@ -8,12 +8,12 @@ export function Guide() {
           <span className="section-num">05</span>Measuring
         </h2>
         <ul>
+          <li>Gap is the number of blocks from one axle to the next; the front axle is the reference.</li>
+          <li>Between is the number of blocks between the two bearings on an axle: 0 if they touch.</li>
           <li>
-            Count blocks between bearing centers, not tire edges. Wheel offset and spacers move the tire away
-            from its pivot.
+            Wheel size sets the track. Each bearing is one block and a wheel's center sits half a wheel
+            outboard of its bearing, so track = between + 2 + wheel width (small 1, big 2).
           </li>
-          <li>Gap is the distance from one axle to the next; the front axle is the reference.</li>
-          <li>Track is the distance between the left and right steering bearings on that axle.</li>
           <li>
             A fixed axle that sits off the turn-center line scrubs its tires in every turn; the results warn
             when that happens.
@@ -45,7 +45,7 @@ outer  = atan(L / (R + T/2))`}</pre>
           <dt>L</dt>
           <dd>distance from the axle to the turn-center line</dd>
           <dt>T</dt>
-          <dd>that axle's track width</dd>
+          <dd>that axle's track: between + 2 + wheel width</dd>
         </dl>
         <p style={{ marginTop: "var(--ld-space-2)" }}>
           Every wheel rolls on a circle around one turn center, so the inner wheel always turns farther than

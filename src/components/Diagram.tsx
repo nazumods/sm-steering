@@ -1,4 +1,11 @@
-import { axlePositions, type Solution, type VehicleSpec } from "../geometry/ackermann";
+import {
+  axlePositions,
+  type Solution,
+  trackOf,
+  type VehicleSpec,
+  WHEEL_WIDTH,
+  type WheelSize,
+} from "../geometry/ackermann";
 import { blocks } from "../ui/format";
 
 interface Props {
@@ -6,8 +13,11 @@ interface Props {
   solution: Solution | null;
 }
 
-const WHEEL_W = 1;
-const WHEEL_L = 2.4;
+/** Wheel footprint in blocks: width across the axle, length along the vehicle. */
+const WHEEL_SIZE: Record<WheelSize, { w: number; l: number }> = {
+  small: { w: WHEEL_WIDTH.small, l: 2.4 },
+  big: { w: WHEEL_WIDTH.big, l: 3.4 },
+};
 
 /**
  * Top-down view of a left turn, in block units. Front is up, the turn center
@@ -17,15 +27,16 @@ const WHEEL_L = 2.4;
 export function Diagram({ spec, solution }: Props) {
   const positions = axlePositions(spec.axles);
   const length = positions[positions.length - 1] ?? 0;
-  const maxTrack = Math.max(1, ...spec.axles.map((a) => a.track));
-  const minTrack = Math.min(...spec.axles.map((a) => a.track));
+  const tracks = spec.axles.map(trackOf);
+  const maxTrack = Math.max(1, ...tracks);
+  const minBetween = Math.min(...spec.axles.map((a) => a.between));
   const center = solution?.turnCenter ?? null;
   const radius = solution?.radius ?? null;
 
   const span = Math.max(length + 3, maxTrack + 3);
   const showCenter = radius !== null && radius <= 3 * span;
 
-  const xMax = maxTrack / 2 + 4;
+  const xMax = maxTrack / 2 + 4.5;
   const xMin = showCenter && radius !== null ? -radius - 2.5 : -maxTrack / 2 - 6;
   const yMin = Math.min(-3.5, center !== null ? center - 1 : 0);
   const yMax = Math.max(length + 3, center !== null ? center + 1 : 0);
@@ -33,7 +44,8 @@ export function Diagram({ spec, solution }: Props) {
   const height = yMax - yMin;
   const fs = Math.min(1.1, Math.max(0.55, width / 42));
 
-  const bodyHalf = Math.max(0.6, minTrack / 2 - 1.15);
+  // Chassis spans the bearings: half the narrowest gap plus one bearing block.
+  const bodyHalf = minBetween / 2 + 1;
 
   return (
     <div>
@@ -81,8 +93,8 @@ export function Diagram({ spec, solution }: Props) {
         )}
         {center !== null &&
           radius !== null &&
-          spec.axles.map((a, i) =>
-            [-a.track / 2, a.track / 2].map((x) => (
+          spec.axles.map((_, i) =>
+            [-tracks[i] / 2, tracks[i] / 2].map((x) => (
               <line
                 key={`${i}-${x}`}
                 className="dg-ray"
@@ -98,6 +110,8 @@ export function Diagram({ spec, solution }: Props) {
         {/* axles and wheels */}
         {spec.axles.map((a, i) => {
           const y = positions[i];
+          const half = tracks[i] / 2;
+          const size = WHEEL_SIZE[a.wheel];
           const res = solution?.axles[i];
           const steered = a.mode === "steer" && res !== undefined && res.direction !== "none";
           const sign = res?.direction === "reversed" ? 1 : -1;
@@ -115,15 +129,15 @@ export function Diagram({ spec, solution }: Props) {
             <g key={i}>
               <line
                 className="dg-axle"
-                x1={-a.track / 2}
+                x1={-half}
                 y1={y}
-                x2={a.track / 2}
+                x2={half}
                 y2={y}
                 vectorEffect="non-scaling-stroke"
               />
-              <Wheel x={-a.track / 2} y={y} rotation={leftRot} className={cls} />
-              <Wheel x={a.track / 2} y={y} rotation={rightRot} className={cls} />
-              <text className="dg-text primary" x={a.track / 2 + 1.4} y={y + fs * 0.35} fontSize={fs}>
+              <Wheel x={-half} y={y} rotation={leftRot} size={size} className={cls} />
+              <Wheel x={half} y={y} rotation={rightRot} size={size} className={cls} />
+              <text className="dg-text primary" x={half + size.w / 2 + 0.9} y={y + fs * 0.35} fontSize={fs}>
                 {i + 1}
               </text>
             </g>
@@ -185,14 +199,26 @@ export function Diagram({ spec, solution }: Props) {
   );
 }
 
-function Wheel({ x, y, rotation, className }: { x: number; y: number; rotation: number; className: string }) {
+function Wheel({
+  x,
+  y,
+  rotation,
+  size,
+  className,
+}: {
+  x: number;
+  y: number;
+  rotation: number;
+  size: { w: number; l: number };
+  className: string;
+}) {
   return (
     <rect
       className={className}
-      x={x - WHEEL_W / 2}
-      y={y - WHEEL_L / 2}
-      width={WHEEL_W}
-      height={WHEEL_L}
+      x={x - size.w / 2}
+      y={y - size.l / 2}
+      width={size.w}
+      height={size.l}
       rx={0.25}
       transform={`rotate(${rotation.toFixed(3)} ${x} ${y})`}
       vectorEffect="non-scaling-stroke"

@@ -13,9 +13,9 @@ describe("codec", () => {
   it("round-trips a custom turn center, explicit reference axle, and radius mode", () => {
     const a: VehicleSpec = {
       axles: [
-        { gap: 0, track: 5.5, mode: "steer" },
-        { gap: 4.25, track: 5.5, mode: "steer" },
-        { gap: 7, track: 6, mode: "fixed" },
+        { gap: 0, between: 3, wheel: "big", mode: "steer" },
+        { gap: 4, between: 3, wheel: "big", mode: "steer" },
+        { gap: 7, between: 0, wheel: "small", mode: "fixed" },
       ],
       turnCenter: { kind: "custom", position: 8.5 },
       limit: { kind: "angle", degrees: 22.5, axle: 1 },
@@ -27,21 +27,23 @@ describe("codec", () => {
   });
 
   it("produces a readable hash", () => {
-    expect(encodeSpec(PRESETS[0].spec)).toBe("a=s0x4%2Cf6x4&c=auto&l=a27");
+    expect(encodeSpec(PRESETS[0].spec)).toBe("a=s0x1s%2Cf6x1s&c=auto&l=a27");
   });
 
   it("rejects malformed input", () => {
     expect(decodeSpec("")).toBeNull();
     expect(decodeSpec("#")).toBeNull();
-    expect(decodeSpec("a=s0x4")).toBeNull(); // one axle
-    expect(decodeSpec("a=s0x4,zz")).toBeNull();
-    expect(decodeSpec("a=s0x4,f6x4&c=nope")).toBeNull();
-    expect(decodeSpec("a=s0x4,f6x4&l=x1")).toBeNull();
-    expect(decodeSpec("a=s0x4,f6x4&l=a27@9")).toBeNull(); // axle out of range
+    expect(decodeSpec("a=s0x1s")).toBeNull(); // one axle
+    expect(decodeSpec("a=s0x1s,zz")).toBeNull();
+    expect(decodeSpec("a=s0x1s,f6x1")).toBeNull(); // missing wheel size
+    expect(decodeSpec("a=s0x1s,f6.5x1s")).toBeNull(); // fractional blocks
+    expect(decodeSpec("a=s0x1s,f6x1s&c=nope")).toBeNull();
+    expect(decodeSpec("a=s0x1s,f6x1s&l=x1")).toBeNull();
+    expect(decodeSpec("a=s0x1s,f6x1s&l=a27@9")).toBeNull(); // axle out of range
     expect(decodeSpec("nonsense")).toBeNull();
   });
 
   it("defaults the turn center and limit when omitted", () => {
-    expect(decodeSpec("a=s0x4,f6x4")).toEqual(PRESETS[0].spec);
+    expect(decodeSpec("a=s0x1s,f6x1s")).toEqual(PRESETS[0].spec);
   });
 });

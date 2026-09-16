@@ -115,7 +115,6 @@ export function VehicleForm({ spec, onChange, solution }: Props) {
               id="limit-angle"
               min={1}
               max={89}
-              step={0.5}
               value={spec.limit.degrees}
               onChange={(degrees) =>
                 onChange({ ...spec, limit: { kind: "angle", degrees, axle: axleOf(spec) } })
@@ -126,8 +125,7 @@ export function VehicleForm({ spec, onChange, solution }: Props) {
           <Field label="Radius (blocks)" htmlFor="limit-radius">
             <NumberInput
               id="limit-radius"
-              min={0.5}
-              step={0.5}
+              min={1}
               value={spec.limit.blocks}
               onChange={(blocks) => onChange({ ...spec, limit: { kind: "radius", blocks } })}
             />

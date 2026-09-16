@@ -55,14 +55,18 @@ export function App() {
       <div className="layout">
         <div className="stack">
           <Card>
-            <SectionTitle n="01" title="Vehicle" sub="Measure between bearing centers, in blocks." />
+            <SectionTitle
+              n="01"
+              title="Vehicle"
+              sub="Count whole blocks; the wheel size fills in the rest."
+            />
             <VehicleForm spec={spec} onChange={setSpec} solution={solution} />
           </Card>
           <Card>
             <SectionTitle
               n="02"
               title="Axles"
-              sub="Front axle first. Gap is the distance to the axle above it; track is left bearing center to right."
+              sub="Front axle first. Gap is blocks to the axle above it; between is blocks between the two bearings."
             />
             <AxleTable spec={spec} onChange={setSpec} solution={solution} />
           </Card>

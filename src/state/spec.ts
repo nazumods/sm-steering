@@ -1,10 +1,20 @@
-import type { AxleSpec, VehicleSpec } from "../geometry/ackermann";
+import type { AxleSpec, VehicleSpec, WheelSize } from "../geometry/ackermann";
 
 export const MIN_AXLES = 2;
 export const MAX_AXLES = 5;
 
-const steer = (gap: number, track: number): AxleSpec => ({ gap, track, mode: "steer" });
-const fixed = (gap: number, track: number): AxleSpec => ({ gap, track, mode: "fixed" });
+const steer = (gap: number, between: number, wheel: WheelSize): AxleSpec => ({
+  gap,
+  between,
+  wheel,
+  mode: "steer",
+});
+const fixed = (gap: number, between: number, wheel: WheelSize): AxleSpec => ({
+  gap,
+  between,
+  wheel,
+  mode: "fixed",
+});
 
 const angle = (degrees: number): VehicleSpec["limit"] => ({ kind: "angle", degrees, axle: "auto" });
 
@@ -18,30 +28,47 @@ export const PRESETS: Preset[] = [
   {
     id: "car",
     label: "4 wheels: front steer",
-    spec: { axles: [steer(0, 4), fixed(6, 4)], turnCenter: { kind: "auto" }, limit: angle(27) },
+    // 1 block between, small wheels: track 4. Matches the scrapmechanic.org default (6 x 4).
+    spec: {
+      axles: [steer(0, 1, "small"), fixed(6, 1, "small")],
+      turnCenter: { kind: "auto" },
+      limit: angle(27),
+    },
   },
   {
     id: "six-front",
     label: "6 wheels: front steer",
-    spec: { axles: [steer(0, 6), fixed(6, 6), fixed(3, 6)], turnCenter: { kind: "auto" }, limit: angle(27) },
+    spec: {
+      axles: [steer(0, 2, "big"), fixed(6, 2, "big"), fixed(3, 2, "big")],
+      turnCenter: { kind: "auto" },
+      limit: angle(27),
+    },
   },
   {
     id: "six-both",
     label: "6 wheels: front + rear steer",
-    spec: { axles: [steer(0, 6), fixed(5, 6), steer(5, 6)], turnCenter: { kind: "auto" }, limit: angle(27) },
+    spec: {
+      axles: [steer(0, 2, "big"), fixed(5, 2, "big"), steer(5, 2, "big")],
+      turnCenter: { kind: "auto" },
+      limit: angle(27),
+    },
   },
   {
     id: "six-split",
     label: "6 wheels: split, all steer",
     // Front axle alone, rear pair close together. The turn center sits halfway
     // along the vehicle, so the middle axle is behind it and steers reversed.
-    spec: { axles: [steer(0, 6), steer(7, 6), steer(3, 6)], turnCenter: { kind: "auto" }, limit: angle(27) },
+    spec: {
+      axles: [steer(0, 2, "big"), steer(7, 2, "big"), steer(3, 2, "big")],
+      turnCenter: { kind: "auto" },
+      limit: angle(27),
+    },
   },
   {
     id: "eight-front",
     label: "8 wheels: front pair steer",
     spec: {
-      axles: [steer(0, 6), steer(3, 6), fixed(6, 6), fixed(3, 6)],
+      axles: [steer(0, 2, "big"), steer(3, 2, "big"), fixed(6, 2, "big"), fixed(3, 2, "big")],
       turnCenter: { kind: "auto" },
       limit: angle(27),
     },
@@ -50,7 +77,7 @@ export const PRESETS: Preset[] = [
     id: "eight-all",
     label: "8 wheels: all steer",
     spec: {
-      axles: [steer(0, 6), steer(3, 6), steer(6, 6), steer(3, 6)],
+      axles: [steer(0, 2, "big"), steer(3, 2, "big"), steer(6, 2, "big"), steer(3, 2, "big")],
       turnCenter: { kind: "auto" },
       limit: angle(27),
     },
@@ -74,7 +101,7 @@ export function withAxleCount(spec: VehicleSpec, count: number): VehicleSpec {
   const axles = spec.axles.slice(0, n);
   while (axles.length < n) {
     const last = axles[axles.length - 1];
-    axles.push({ gap: 4, track: last?.track ?? 4, mode: "fixed" });
+    axles.push({ gap: 4, between: last?.between ?? 2, wheel: last?.wheel ?? "big", mode: "fixed" });
   }
   return { ...spec, axles };
 }

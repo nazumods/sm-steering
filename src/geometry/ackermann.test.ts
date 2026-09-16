@@ -5,12 +5,32 @@ import {
   axlePositions,
   farthestSteeredAxle,
   solve,
+  trackOf,
   type VehicleSpec,
   wheelLimits,
 } from "./ackermann";
 
-const steer = (gap: number, track = 4): AxleSpec => ({ gap, track, mode: "steer" });
-const fixed = (gap: number, track = 4): AxleSpec => ({ gap, track, mode: "fixed" });
+describe("trackOf", () => {
+  it("adds the two bearings and one wheel width", () => {
+    expect(trackOf({ between: 1, wheel: "small" })).toBe(4);
+    expect(trackOf({ between: 2, wheel: "big" })).toBe(6);
+    expect(trackOf({ between: 0, wheel: "small" })).toBe(3);
+  });
+});
+
+// Small wheels: track = between + 3, so `track` here is the resulting track width.
+const steer = (gap: number, track = 4): AxleSpec => ({
+  gap,
+  between: track - 3,
+  wheel: "small",
+  mode: "steer",
+});
+const fixed = (gap: number, track = 4): AxleSpec => ({
+  gap,
+  between: track - 3,
+  wheel: "small",
+  mode: "fixed",
+});
 
 function spec(axles: AxleSpec[], extra: Partial<VehicleSpec> = {}): VehicleSpec {
   return {
@@ -138,10 +158,12 @@ describe("solve: validation", () => {
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.errors[0]).toMatch(/at least one axle as steered/);
   });
-  it("rejects non-positive gaps and tracks", () => {
+  it("rejects non-positive gaps, negative between, and fractional blocks", () => {
     const r = solve(spec([steer(0, 0), fixed(0)]));
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.errors.length).toBe(2);
+    const frac = solve(spec([steer(0), { gap: 5.5, between: 1, wheel: "small", mode: "fixed" }]));
+    expect(frac.ok).toBe(false);
   });
   it("rejects a turn tighter than the track allows", () => {
     const r = solve(spec([steer(0, 8), fixed(6)], { limit: { kind: "radius", blocks: 3 } }));

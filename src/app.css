@@ -113,6 +113,9 @@
 .axle-table .ld-input {
   width: 5.5rem;
 }
+.axle-table .btn-group {
+  flex-wrap: nowrap;
+}
 .axle-table .axle-num {
   font-weight: var(--ld-font-weight-bold);
   color: var(--ld-primary);

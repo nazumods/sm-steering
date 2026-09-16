@@ -1,7 +1,15 @@
 import { Badge, Switch } from "@lepid-labs/ui-react";
 import type { ReactNode } from "react";
-import { type AxleResult, axlePositions, type Solution, type VehicleSpec } from "../geometry/ackermann";
+import {
+  type AxleResult,
+  axlePositions,
+  type Solution,
+  trackOf,
+  type VehicleSpec,
+  type WheelSize,
+} from "../geometry/ackermann";
 import { updateAxle } from "../state/spec";
+import { ButtonGroup } from "../ui/ButtonGroup";
 import { short } from "../ui/format";
 import { NumberInput } from "../ui/NumberInput";
 
@@ -10,6 +18,11 @@ interface Props {
   onChange: (spec: VehicleSpec) => void;
   solution: Solution | null;
 }
+
+const WHEEL_OPTIONS: { value: WheelSize; label: string }[] = [
+  { value: "small", label: "Small" },
+  { value: "big", label: "Big" },
+];
 
 export function RoleBadge({
   axle,
@@ -47,7 +60,8 @@ export function AxleTable({ spec, onChange, solution }: Props) {
           <tr>
             <th scope="col">Axle</th>
             <th scope="col">Gap</th>
-            <th scope="col">Track</th>
+            <th scope="col">Between</th>
+            <th scope="col">Wheels</th>
             <th scope="col">Steered</th>
             <th scope="col">Role</th>
           </tr>
@@ -57,16 +71,20 @@ export function AxleTable({ spec, onChange, solution }: Props) {
             <tr key={i}>
               <td>
                 <span className="axle-num">{i + 1}</span>{" "}
-                <span className="axle-pos">{i === 0 ? "front" : `${short(positions[i])} back`}</span>
+                <span className="axle-pos">
+                  {i === 0 ? "front" : `${short(positions[i])} back`}
+                  <br />
+                  track {trackOf(a)}
+                </span>
               </td>
               <td>
                 {i === 0 ? (
                   <span className="ld-muted">&mdash;</span>
                 ) : (
                   <NumberInput
-                    aria-label={`Axle ${i + 1} gap from axle ${i}, in blocks`}
-                    min={0.5}
-                    step={0.5}
+                    aria-label={`Axle ${i + 1}: blocks behind axle ${i}`}
+                    integer
+                    min={1}
                     value={a.gap}
                     onChange={(gap) => onChange(updateAxle(spec, i, { gap }))}
                   />
@@ -74,11 +92,19 @@ export function AxleTable({ spec, onChange, solution }: Props) {
               </td>
               <td>
                 <NumberInput
-                  aria-label={`Axle ${i + 1} track width, in blocks`}
-                  min={0.5}
-                  step={0.5}
-                  value={a.track}
-                  onChange={(track) => onChange(updateAxle(spec, i, { track }))}
+                  aria-label={`Axle ${i + 1}: blocks between the two bearings`}
+                  integer
+                  min={0}
+                  value={a.between}
+                  onChange={(between) => onChange(updateAxle(spec, i, { between }))}
+                />
+              </td>
+              <td>
+                <ButtonGroup
+                  label={`Axle ${i + 1} wheel size`}
+                  options={WHEEL_OPTIONS}
+                  value={a.wheel}
+                  onChange={(wheel) => onChange(updateAxle(spec, i, { wheel }))}
                 />
               </td>
               <td>

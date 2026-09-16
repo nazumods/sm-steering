@@ -16,12 +16,27 @@
 
 export type SteerMode = "fixed" | "steer";
 
+export type WheelSize = "small" | "big";
+
+/** Wheel width in blocks. */
+export const WHEEL_WIDTH: Record<WheelSize, number> = { small: 1, big: 2 };
+
 export interface AxleSpec {
-  /** Blocks behind the previous axle. Ignored for the first axle. */
+  /** Whole blocks behind the previous axle. Ignored for the first axle. */
   gap: number;
-  /** Center of the left bearing to the center of the right, in blocks. */
-  track: number;
+  /** Whole blocks between the two bearings on this axle (0 if they touch). */
+  between: number;
+  wheel: WheelSize;
   mode: SteerMode;
+}
+
+/**
+ * Track width: the distance between the two wheel centerlines. Each bearing is
+ * one block, and a wheel's center sits half a wheel outboard of its bearing,
+ * so track = between + 2 + wheel width.
+ */
+export function trackOf(axle: Pick<AxleSpec, "between" | "wheel">): number {
+  return axle.between + 2 + WHEEL_WIDTH[axle.wheel];
 }
 
 export type TurnCenterSpec = { kind: "auto" } | { kind: "custom"; position: number };
@@ -133,8 +148,12 @@ function validate(spec: VehicleSpec): string[] {
   if (spec.axles.length < 2) errors.push("A vehicle needs at least two axles.");
   spec.axles.forEach((a, i) => {
     const n = i + 1;
-    if (i > 0 && !(a.gap > 0)) errors.push(`Axle ${n}: the gap to the previous axle must be greater than 0.`);
-    if (!(a.track > 0)) errors.push(`Axle ${n}: the track width must be greater than 0.`);
+    if (i > 0 && !(Number.isInteger(a.gap) && a.gap > 0)) {
+      errors.push(`Axle ${n}: the gap to the previous axle must be a whole number of blocks, at least 1.`);
+    }
+    if (!(Number.isInteger(a.between) && a.between >= 0)) {
+      errors.push(`Axle ${n}: blocks between the bearings must be a whole number, 0 or more.`);
+    }
   });
   if (spec.turnCenter.kind === "custom" && !Number.isFinite(spec.turnCenter.position)) {
     errors.push("The turn-center position must be a number.");
@@ -182,7 +201,7 @@ export function solve(spec: VehicleSpec): Result {
     }
     const ref = spec.axles[referenceAxle];
     const L = Math.abs(positions[referenceAxle] - center);
-    radius = ref.track / 2 + L / Math.tan(spec.limit.degrees / DEG);
+    radius = trackOf(ref) / 2 + L / Math.tan(spec.limit.degrees / DEG);
   } else {
     radius = spec.limit.blocks;
   }
@@ -203,12 +222,12 @@ export function solve(spec: VehicleSpec): Result {
     let inner = 0;
     let outer = 0;
     if (a.mode === "steer" && !onLine) {
-      const innerArm = radius - a.track / 2;
+      const innerArm = radius - trackOf(a) / 2;
       if (innerArm <= EPS) {
         tooTight.push(i + 1);
       } else {
         inner = Math.atan(L / innerArm) * DEG;
-        outer = Math.atan(L / (radius + a.track / 2)) * DEG;
+        outer = Math.atan(L / (radius + trackOf(a) / 2)) * DEG;
       }
       direction = offset < 0 ? "normal" : "reversed";
     } else if (a.mode === "steer") {
@@ -216,14 +235,14 @@ export function solve(spec: VehicleSpec): Result {
     } else if (!onLine) {
       scrubbing.push(i + 1);
     }
-    const innerRadius = Math.hypot(L, radius - a.track / 2);
-    const outerRadius = Math.hypot(L, radius + a.track / 2);
+    const innerRadius = Math.hypot(L, radius - trackOf(a) / 2);
+    const outerRadius = Math.hypot(L, radius + trackOf(a) / 2);
     minRadius = Math.min(minRadius, innerRadius);
     maxRadius = Math.max(maxRadius, outerRadius);
     axles.push({
       index: i,
       position,
-      track: a.track,
+      track: trackOf(a),
       mode: a.mode,
       offset,
       direction,

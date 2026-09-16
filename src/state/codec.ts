@@ -4,9 +4,10 @@ import { MAX_AXLES, MIN_AXLES } from "./spec";
 /**
  * Compact URL-hash form of a VehicleSpec, so a setup can be shared as a link.
  *
- *   #a=s0x4,f6x4&c=auto&l=a27
+ *   #a=s0x1s,f6x1s&c=auto&l=a27
  *
- * `a`: one entry per axle, `<mode><gap>x<track>` with mode `s` (steer) or `f` (fixed).
+ * `a`: one entry per axle, `<mode><gap>x<between><wheel>` with mode `s` (steer)
+ *      or `f` (fixed), whole-block gap and between, and wheel `s` (small) or `b` (big).
  * `c`: `auto` or a number (blocks behind the front axle).
  * `l`: `a<degrees>` (inner angle, farthest steered axle), `a<degrees>@<axle>`
  *      (inner angle on a 1-based axle), or `r<blocks>` (turn radius).
@@ -18,7 +19,12 @@ export function encodeSpec(spec: VehicleSpec): string {
   const p = new URLSearchParams();
   p.set(
     "a",
-    spec.axles.map((a) => `${a.mode === "steer" ? "s" : "f"}${num(a.gap)}x${num(a.track)}`).join(","),
+    spec.axles
+      .map(
+        (a) =>
+          `${a.mode === "steer" ? "s" : "f"}${num(a.gap)}x${num(a.between)}${a.wheel === "big" ? "b" : "s"}`,
+      )
+      .join(","),
   );
   p.set("c", spec.turnCenter.kind === "auto" ? "auto" : num(spec.turnCenter.position));
   if (spec.limit.kind === "angle") {
@@ -37,12 +43,12 @@ function parseNumber(s: string | undefined): number | null {
 }
 
 function parseAxle(s: string): AxleSpec | null {
-  const m = /^([sf])(-?[\d.]+)x(-?[\d.]+)$/.exec(s);
+  const m = /^([sf])(\d+)x(\d+)([sb])$/.exec(s);
   if (!m) return null;
   const gap = parseNumber(m[2]);
-  const track = parseNumber(m[3]);
-  if (gap === null || track === null) return null;
-  return { gap, track, mode: m[1] === "s" ? "steer" : "fixed" };
+  const between = parseNumber(m[3]);
+  if (gap === null || between === null) return null;
+  return { gap, between, wheel: m[4] === "b" ? "big" : "small", mode: m[1] === "s" ? "steer" : "fixed" };
 }
 
 /** Returns null for anything malformed; callers fall back to a default. */
