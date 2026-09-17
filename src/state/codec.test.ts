@@ -13,9 +13,9 @@ describe("codec", () => {
   it("round-trips a custom turn center, explicit reference axle, and radius mode", () => {
     const a: VehicleSpec = {
       axles: [
-        { gap: 0, between: 3, wheel: "big", mode: "steer" },
-        { gap: 4, between: 3, wheel: "big", mode: "steer" },
-        { gap: 7, between: 0, wheel: "small", mode: "fixed" },
+        { gap: 0, between: 3, wheel: "big", tilt: 30, mode: "steer" },
+        { gap: 4, between: 3, wheel: "big", tilt: 0, mode: "steer" },
+        { gap: 7, between: 0, wheel: "small", tilt: 0, mode: "fixed" },
       ],
       turnCenter: { kind: "custom", position: 8.5 },
       limit: { kind: "angle", degrees: 22.5, axle: 1 },
@@ -28,6 +28,11 @@ describe("codec", () => {
 
   it("produces a readable hash", () => {
     expect(encodeSpec(PRESETS[0].spec)).toBe("a=s0x1s%2Cf6x1s&c=auto&l=a27");
+    const tilted = {
+      ...PRESETS[0].spec,
+      axles: [{ ...PRESETS[0].spec.axles[0], tilt: 30 }, PRESETS[0].spec.axles[1]],
+    };
+    expect(encodeSpec(tilted)).toBe("a=s0x1st30%2Cf6x1s&c=auto&l=a27");
   });
 
   it("rejects malformed input", () => {

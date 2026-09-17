@@ -3,7 +3,10 @@ import {
   type AxleSpec,
   autoTurnCenter,
   axlePositions,
+  bearingSetting,
   farthestSteeredAxle,
+  groundYaw,
+  leanAt,
   solve,
   trackOf,
   type VehicleSpec,
@@ -19,17 +22,57 @@ describe("trackOf", () => {
 });
 
 // Small wheels: track = between + 3, so `track` here is the resulting track width.
-const steer = (gap: number, track = 4): AxleSpec => ({
+const steer = (gap: number, track = 4, tilt = 0): AxleSpec => ({
   gap,
   between: track - 3,
   wheel: "small",
+  tilt,
   mode: "steer",
 });
 const fixed = (gap: number, track = 4): AxleSpec => ({
   gap,
   between: track - 3,
   wheel: "small",
+  tilt: 0,
   mode: "fixed",
+});
+
+describe("tilted steering axis", () => {
+  it("is the identity with no tilt", () => {
+    expect(groundYaw(27, 0)).toBeCloseTo(27, 9);
+    expect(bearingSetting(27, 0)).toBe(27);
+    expect(leanAt(27, 0)).toBe(0);
+  });
+  it("a 30 degree caster tilt turns a 27 degree setting into about 23 degrees at the ground", () => {
+    expect(groundYaw(27, 30)).toBeCloseTo(23.18, 2);
+    expect(leanAt(27, 30)).toBeCloseTo(13.1, 1);
+  });
+  it("bearingSetting inverts groundYaw", () => {
+    for (const tilt of [10, 30, 45]) {
+      for (const setting of [5, 27, 45, 70]) {
+        expect(bearingSetting(groundYaw(setting, tilt), tilt)).toBeCloseTo(setting, 9);
+      }
+    }
+  });
+  it("solve converts the seat settings but keeps the geometry in ground angles", () => {
+    const flat = ok(spec([steer(0), fixed(6)]));
+    const tilted = ok(spec([steer(0, 4, 30), fixed(6)]));
+    expect(tilted.axles[0].inner).toBeCloseTo(flat.axles[0].inner, 9);
+    expect(tilted.axles[0].outer).toBeCloseTo(flat.axles[0].outer, 9);
+    expect(tilted.axles[0].innerSetting).toBeGreaterThan(27);
+    expect(groundYaw(tilted.axles[0].innerSetting, 30)).toBeCloseTo(27, 9);
+    expect(tilted.axles[0].innerLean).toBeGreaterThan(10);
+    const w = wheelLimits(tilted);
+    expect(w[0].leftTurn).toBeCloseTo(tilted.axles[0].innerSetting, 9);
+    expect(w[0].leftTurnGround).toBeCloseTo(27, 9);
+  });
+  it("rejects a wheel angle the tilted axis cannot reach", () => {
+    const r = solve(
+      spec([steer(0, 4, 60), fixed(6)], { limit: { kind: "angle", degrees: 75, axle: "auto" } }),
+    );
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors[0]).toMatch(/not reachable/);
+  });
 });
 
 function spec(axles: AxleSpec[], extra: Partial<VehicleSpec> = {}): VehicleSpec {
@@ -162,7 +205,7 @@ describe("solve: validation", () => {
     const r = solve(spec([steer(0, 0), fixed(0)]));
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.errors.length).toBe(2);
-    const frac = solve(spec([steer(0), { gap: 5.5, between: 1, wheel: "small", mode: "fixed" }]));
+    const frac = solve(spec([steer(0), { gap: 5.5, between: 1, wheel: "small", tilt: 0, mode: "fixed" }]));
     expect(frac.ok).toBe(false);
   });
   it("rejects a turn tighter than the track allows", () => {

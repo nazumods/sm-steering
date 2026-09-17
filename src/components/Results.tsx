@@ -24,6 +24,7 @@ function Solved({ solution }: { solution: Solution }) {
   const wheels = wheelLimits(solution);
   const steered = solution.axles.filter((a) => a.mode === "steer" && a.direction !== "none");
   const anyReversed = steered.some((a) => a.direction === "reversed");
+  const anyTilted = steered.some((a) => a.tilt !== 0);
   const ref = solution.referenceAxle;
 
   return (
@@ -52,6 +53,9 @@ function Solved({ solution }: { solution: Solution }) {
                   <th scope="col" className="num">
                     Difference
                   </th>
+                  <th scope="col" className="num">
+                    Lean
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -73,6 +77,16 @@ function Solved({ solution }: { solution: Solution }) {
                           {Math.round(a.inner) - Math.round(a.outer)}
                           {"°"}
                         </span>
+                      )}
+                    </td>
+                    <td className="num">
+                      {a.direction === "none" || a.tilt === 0 ? (
+                        "—"
+                      ) : (
+                        <Deg
+                          value={a.innerLean}
+                          title={`inner wheel leans ${a.innerLean.toFixed(2)}°, outer ${a.outerLean.toFixed(2)}° at full lock`}
+                        />
                       )}
                     </td>
                   </tr>
@@ -105,10 +119,10 @@ function Solved({ solution }: { solution: Solution }) {
                       Axle {w.axle + 1} {w.side}
                     </td>
                     <td className="num">
-                      <Deg value={w.leftTurn} />
+                      <Deg value={w.leftTurn} title={settingTitle(w.leftTurn, w.leftTurnGround, w.tilt)} />
                     </td>
                     <td className="num">
-                      <Deg value={w.rightTurn} />
+                      <Deg value={w.rightTurn} title={settingTitle(w.rightTurn, w.rightTurnGround, w.tilt)} />
                     </td>
                     <td>{w.direction === "reversed" ? "Reversed" : "With front"}</td>
                   </tr>
@@ -118,6 +132,13 @@ function Solved({ solution }: { solution: Solution }) {
           </div>
         </div>
       </div>
+
+      {anyTilted && (
+        <p className="hint">
+          Settings are converted for the tilted steering axis: the bearing turns farther than the wheel does
+          at the ground. Hover a value for both angles.
+        </p>
+      )}
 
       <div className="actions">
         <CopyButton text={formatForClipboard(solution)} />
@@ -177,4 +198,9 @@ export function formatForClipboard(solution: Solution): string {
 
 function round(n: number): number {
   return Math.round(n * 100) / 100;
+}
+
+function settingTitle(setting: number, ground: number, tilt: number): string | undefined {
+  if (tilt === 0) return undefined;
+  return `set ${setting.toFixed(2)}°, which is ${ground.toFixed(2)}° at the ground with a ${tilt}° axis tilt`;
 }

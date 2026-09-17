@@ -15,6 +15,10 @@ export function Guide() {
             outboard of its bearing, so track = between + 2 + wheel width (small 1, big 2).
           </li>
           <li>
+            Axis tilt is how far the steering bearing leans from vertical toward the vehicle center, the
+            caster-style build that makes wheels lean into turns. Leave it 0 for a flat steering bearing.
+          </li>
+          <li>
             A fixed axle that sits off the turn-center line scrubs its tires in every turn; the results warn
             when that happens.
           </li>
@@ -38,7 +42,11 @@ export function Guide() {
         </h2>
         <pre className="ld-pre">{`R      = T/2 + L / tan(inner)     (reference axle)
 inner  = atan(L / (R - T/2))
-outer  = atan(L / (R + T/2))`}</pre>
+outer  = atan(L / (R + T/2))
+
+tilted axis, tilt t and bearing setting d:
+ground = atan(cos t sin d / (cos²t cos d + sin²t))
+lean   = asin(sin t sin d)`}</pre>
         <dl>
           <dt>R</dt>
           <dd>turn radius, turn center to vehicle centerline</dd>

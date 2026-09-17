@@ -62,6 +62,7 @@ export function AxleTable({ spec, onChange, solution }: Props) {
             <th scope="col">Gap</th>
             <th scope="col">Between</th>
             <th scope="col">Wheels</th>
+            <th scope="col">Axis tilt</th>
             <th scope="col">Steered</th>
             <th scope="col">Role</th>
           </tr>
@@ -105,6 +106,17 @@ export function AxleTable({ spec, onChange, solution }: Props) {
                   options={WHEEL_OPTIONS}
                   value={a.wheel}
                   onChange={(wheel) => onChange(updateAxle(spec, i, { wheel }))}
+                />
+              </td>
+              <td>
+                <NumberInput
+                  aria-label={`Axle ${i + 1}: steering-axis tilt in degrees`}
+                  integer
+                  min={0}
+                  max={89}
+                  value={a.tilt}
+                  disabled={a.mode !== "steer"}
+                  onChange={(tilt) => onChange(updateAxle(spec, i, { tilt }))}
                 />
               </td>
               <td>

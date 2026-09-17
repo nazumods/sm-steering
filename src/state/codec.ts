@@ -6,8 +6,9 @@ import { MAX_AXLES, MIN_AXLES } from "./spec";
  *
  *   #a=s0x1s,f6x1s&c=auto&l=a27
  *
- * `a`: one entry per axle, `<mode><gap>x<between><wheel>` with mode `s` (steer)
- *      or `f` (fixed), whole-block gap and between, and wheel `s` (small) or `b` (big).
+ * `a`: one entry per axle, `<mode><gap>x<between><wheel>[t<tilt>]` with mode `s`
+ *      (steer) or `f` (fixed), whole-block gap and between, wheel `s` (small) or
+ *      `b` (big), and an optional steering-axis tilt in degrees (omitted when 0).
  * `c`: `auto` or a number (blocks behind the front axle).
  * `l`: `a<degrees>` (inner angle, farthest steered axle), `a<degrees>@<axle>`
  *      (inner angle on a 1-based axle), or `r<blocks>` (turn radius).
@@ -22,7 +23,9 @@ export function encodeSpec(spec: VehicleSpec): string {
     spec.axles
       .map(
         (a) =>
-          `${a.mode === "steer" ? "s" : "f"}${num(a.gap)}x${num(a.between)}${a.wheel === "big" ? "b" : "s"}`,
+          `${a.mode === "steer" ? "s" : "f"}${num(a.gap)}x${num(a.between)}${a.wheel === "big" ? "b" : "s"}${
+            a.tilt ? `t${num(a.tilt)}` : ""
+          }`,
       )
       .join(","),
   );
@@ -43,12 +46,19 @@ function parseNumber(s: string | undefined): number | null {
 }
 
 function parseAxle(s: string): AxleSpec | null {
-  const m = /^([sf])(\d+)x(\d+)([sb])$/.exec(s);
+  const m = /^([sf])(\d+)x(\d+)([sb])(?:t(\d+(?:\.\d+)?))?$/.exec(s);
   if (!m) return null;
   const gap = parseNumber(m[2]);
   const between = parseNumber(m[3]);
-  if (gap === null || between === null) return null;
-  return { gap, between, wheel: m[4] === "b" ? "big" : "small", mode: m[1] === "s" ? "steer" : "fixed" };
+  const tilt = m[5] === undefined ? 0 : parseNumber(m[5]);
+  if (gap === null || between === null || tilt === null) return null;
+  return {
+    gap,
+    between,
+    wheel: m[4] === "b" ? "big" : "small",
+    tilt,
+    mode: m[1] === "s" ? "steer" : "fixed",
+  };
 }
 
 /** Returns null for anything malformed; callers fall back to a default. */

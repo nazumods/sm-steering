@@ -7,12 +7,14 @@ const steer = (gap: number, between: number, wheel: WheelSize): AxleSpec => ({
   gap,
   between,
   wheel,
+  tilt: 0,
   mode: "steer",
 });
 const fixed = (gap: number, between: number, wheel: WheelSize): AxleSpec => ({
   gap,
   between,
   wheel,
+  tilt: 0,
   mode: "fixed",
 });
 
@@ -101,7 +103,7 @@ export function withAxleCount(spec: VehicleSpec, count: number): VehicleSpec {
   const axles = spec.axles.slice(0, n);
   while (axles.length < n) {
     const last = axles[axles.length - 1];
-    axles.push({ gap: 4, between: last?.between ?? 2, wheel: last?.wheel ?? "big", mode: "fixed" });
+    axles.push({ gap: 4, between: last?.between ?? 2, wheel: last?.wheel ?? "big", tilt: 0, mode: "fixed" });
   }
   return { ...spec, axles };
 }

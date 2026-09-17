@@ -13,10 +13,10 @@ interface Props {
   solution: Solution | null;
 }
 
-/** Wheel footprint in blocks: width across the axle, length along the vehicle. */
+/** Wheel footprint in blocks: width across the axle, diameter along the vehicle. */
 const WHEEL_SIZE: Record<WheelSize, { w: number; l: number }> = {
-  small: { w: WHEEL_WIDTH.small, l: 2.4 },
-  big: { w: WHEEL_WIDTH.big, l: 3.4 },
+  small: { w: WHEEL_WIDTH.small, l: 3 },
+  big: { w: WHEEL_WIDTH.big, l: 5 },
 };
 
 /**
